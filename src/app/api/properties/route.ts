@@ -25,9 +25,14 @@ export async function GET(req: NextRequest) {
 
     if (search) {
       const upper = search.toUpperCase();
+      const regex = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
       query.$or = [
         { inspectionNumber: upper },  // exact indexed lookup
         { shortId: upper },           // exact indexed lookup
+        { ownerName: regex },
+        { ownerEmail: regex },
+        { ownerPhone: regex },
+        { projectName: regex },
       ];
     }
 
