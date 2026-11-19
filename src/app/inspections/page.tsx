@@ -419,28 +419,15 @@ export default function InspectionsPage() {
   // Assign Inspector
   // ---------------------------------------------------------------------------
 
-  const openAssignInspector = (propertyId: string, city?: string) => {
-    setActivePropertyId(propertyId);
-    setActivePropertyCity(city || '');
-    setIncludeCity(false);
-    setInspectionDate('');
-    setInspectionTime(TIME_SLOTS[0] || '');
-    setSelectedInspectorId('');
-    setAvailableInspectors([]);
-    setAssignInspectorError('');
-    setAssignInspectorModal(true);
-  };
-
-  const handleInspectionDateChange = async (date: string, cityFilter?: boolean) => {
-    setInspectionDate(date);
-    setSelectedInspectorId('');
+  const fetchAvailableInspectors = async (date: string, cityFilter?: boolean, cityVal?: string) => {
     if (!date) {
       setAvailableInspectors([]);
       return;
     }
     setInspectorLoading(true);
     try {
-      const cityParam = cityFilter && activePropertyCity ? `&city=${encodeURIComponent(activePropertyCity)}` : '';
+      const cityToUse = cityVal !== undefined ? cityVal : activePropertyCity;
+      const cityParam = cityFilter && cityToUse ? `&city=${encodeURIComponent(cityToUse)}` : '';
       const res = await fetch(`/api/inspector/available?date=${date}${cityParam}`);
       if (res.ok) {
         const data = await res.json();
@@ -451,6 +438,74 @@ export default function InspectionsPage() {
     } finally {
       setInspectorLoading(false);
     }
+  };
+
+  const openAssignInspector = (
+    propertyId: string,
+    city?: string,
+    existingDate?: string | null,
+    existingTime?: string | null
+  ) => {
+    const propCity = city || '';
+    setActivePropertyId(propertyId);
+    setActivePropertyCity(propCity);
+    setIncludeCity(false);
+    setSelectedInspectorId('');
+    setAssignInspectorError('');
+
+    // Pre-fill date (convert "2026-11-20T00:00:00.000Z" -> "2026-11-20")
+    let formattedDate = '';
+    if (existingDate) {
+      try {
+        const d = new Date(existingDate);
+        if (!isNaN(d.getTime())) {
+          formattedDate = d.toISOString().split('T')[0];
+        } else if (existingDate.includes('T')) {
+          formattedDate = existingDate.split('T')[0];
+        } else {
+          formattedDate = existingDate;
+        }
+      } catch {
+        formattedDate = '';
+      }
+    }
+
+    // Pre-fill time slot (e.g. "09:30" -> "9:30 AM")
+    let matchedTime = TIME_SLOTS[0] || '';
+    if (existingTime) {
+      const trimmed = existingTime.trim();
+      const direct = TIME_SLOTS.find((s) => s.toLowerCase() === trimmed.toLowerCase());
+      if (direct) {
+        matchedTime = direct;
+      } else {
+        const parts = trimmed.split(':');
+        if (parts.length >= 2) {
+          const h = parseInt(parts[0], 10);
+          const m = parts[1].substring(0, 2);
+          const ampm = h >= 12 ? 'PM' : 'AM';
+          const hour12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+          const converted = `${hour12}:${m} ${ampm}`;
+          const found = TIME_SLOTS.find((s) => s === converted);
+          if (found) matchedTime = found;
+        }
+      }
+    }
+
+    setInspectionDate(formattedDate);
+    setInspectionTime(matchedTime);
+    setAssignInspectorModal(true);
+
+    if (formattedDate) {
+      fetchAvailableInspectors(formattedDate, false, propCity);
+    } else {
+      setAvailableInspectors([]);
+    }
+  };
+
+  const handleInspectionDateChange = async (date: string, cityFilter?: boolean) => {
+    setInspectionDate(date);
+    setSelectedInspectorId('');
+    fetchAvailableInspectors(date, cityFilter);
   };
 
   const handleAssignInspector = async () => {
@@ -965,7 +1020,7 @@ export default function InspectionsPage() {
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
                                 <div style={{ fontWeight: 600, color: '#0054A8' }}>{row.inspectorId.name}</div>
-                                <button onClick={() => openAssignInspector(row._id, row.city)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0054A8', padding: '0 2px', marginLeft: '4px' }} title="Reassign">
+                                <button onClick={() => openAssignInspector(row._id, row.city, row.inspectionDate, row.inspectionTime)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0054A8', padding: '0 2px', marginLeft: '4px' }} title="Reassign">
                                   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                                 </button>
                               </div>
@@ -998,7 +1053,7 @@ export default function InspectionsPage() {
                                 {formatDate(row.inspectionDate)}
                               </div>
                               <button
-                                onClick={() => !isPendingOrPayment && openAssignInspector(row._id, row.city)}
+                                onClick={() => !isPendingOrPayment && openAssignInspector(row._id, row.city, row.inspectionDate, row.inspectionTime)}
                                 style={isPendingOrPayment ? btnAssignDisabled : btnAssign}
                                 disabled={isPendingOrPayment}
                               >
