@@ -54,16 +54,17 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Sort by updatedAt desc so recently assigned/updated inspections (re-checks) appear first.
-    // estimatedDocumentCount is O(1) for the unfiltered case; countDocuments for filtered.
+    // Sort by _id desc (always indexed, O(log n)) — the old collection uses createdDate/updatedDate
+    // not createdAt/updatedAt, so sorting by updatedAt caused a full collection scan + timeout.
     const hasFilters = !!(search || bookingStatus || propertyType || startDate || endDate);
     const [properties, total] = await Promise.all([
       Property.find(query)
         .select('-inspectionData')
         .lean()
-        .sort({ updatedAt: -1 })
+        .sort({ _id: -1 })
         .skip(skip)
-        .limit(limit),
+        .limit(limit)
+        .maxTimeMS(15000),
       hasFilters
         ? Property.countDocuments(query)
         : Property.estimatedDocumentCount(),
