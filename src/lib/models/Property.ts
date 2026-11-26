@@ -37,9 +37,15 @@ const PropertySchema = new mongoose.Schema({
   isReportSent: { type: Boolean, default: false },
   reportSentAt: { type: Date },
   inspectionData: { type: Object },
+  inspectionDetail: { type: mongoose.Schema.Types.Mixed },
+  isReachedUnit: { type: Boolean, default: false },
+  gatePass: { type: mongoose.Schema.Types.Mixed },
+  isInspected: { type: Boolean, default: false },
+  actualInspectionDate: { type: Date },
+  overallhealthrating: { type: Number },
   status: { type: String, enum: ['Active', 'Inactive', 'Delete'], default: 'Active' },
   shortId: { type: String },
-}, { timestamps: true });
+}, { timestamps: true, strict: false });
 
 // Auto-populate shortId from _id on first save
 PropertySchema.pre('save', function (next) {
