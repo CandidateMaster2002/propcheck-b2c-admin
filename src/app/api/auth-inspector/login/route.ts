@@ -48,16 +48,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const rawRole = Array.isArray(inspector.role)
+      ? inspector.role[0]
+      : (inspector.role || 'External Inspector');
+    const normalizedRole = rawRole === 'Inspector' ? 'External Inspector' : rawRole;
+
     const token = await generateToken({
       id: String(inspector._id),
       email: inspector.email,
-      role: inspector.role || 'Inspector',
+      role: normalizedRole,
       userName: inspector.userName || inspector.name || '',
     });
-
-    const roleArr = Array.isArray(inspector.role)
-      ? inspector.role
-      : [inspector.role || 'Inspector'];
 
     return NextResponse.json({
       statusCode: 200,
@@ -67,8 +68,8 @@ export async function POST(req: NextRequest) {
         _id: String(inspector._id),
         email: inspector.email,
         userName: inspector.userName || inspector.name || '',
-        phone: inspector.phone ? [inspector.phone] : [],
-        role: roleArr,
+        phone: inspector.phone || '',
+        role: normalizedRole,
         token,
         profileImage: inspector.profileImage || '',
         city: inspector.city || '',
