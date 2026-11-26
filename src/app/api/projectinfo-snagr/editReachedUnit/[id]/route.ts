@@ -17,7 +17,7 @@ export async function PUT(
     const { id } = await params;
     const updated = await Property.findByIdAndUpdate(
       id,
-      { $set: { gatePass: true, actualInspectionDate: new Date(), updatedAt: new Date() } },
+      { $set: { isReachedUnit: true, gatePass: true, actualInspectionDate: new Date(), updatedAt: new Date() } },
       { new: true }
     ).lean();
 
