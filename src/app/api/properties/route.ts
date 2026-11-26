@@ -88,7 +88,12 @@ export async function GET(req: NextRequest) {
     (users as any[]).forEach((u: any) => { usersMap[String(u._id)] = u; });
 
     const inspectorsMap: Record<string, any> = {};
-    (inspectors as any[]).forEach((i: any) => { inspectorsMap[String(i._id)] = i; });
+    (inspectors as any[]).forEach((i: any) => {
+      inspectorsMap[String(i._id)] = {
+        ...i,
+        name: i.name || i.userName || '',
+      };
+    });
 
     const enriched = (properties as any[]).map((p: any) => ({
       ...p,

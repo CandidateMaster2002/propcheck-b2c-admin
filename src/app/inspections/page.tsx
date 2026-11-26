@@ -1019,7 +1019,7 @@ export default function InspectionsPage() {
                           {row.inspectorId ? (
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                                <div style={{ fontWeight: 600, color: '#0054A8' }}>{row.inspectorId.name}</div>
+                                <div style={{ fontWeight: 600, color: '#0054A8' }}>{row.inspectorId.name || (row.inspectorId as any).userName || 'Assigned'}</div>
                                 <button onClick={() => openAssignInspector(row._id, row.city, row.inspectionDate, row.inspectionTime)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0054A8', padding: '0 2px', marginLeft: '4px' }} title="Reassign">
                                   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                                 </button>
@@ -1121,7 +1121,7 @@ export default function InspectionsPage() {
                             <span style={{ color: '#999' }}>-----</span>
                           ) : row.validatorId ? (
                             <div>
-                              <span style={{ fontWeight: 600 }}>{row.validatorId.name}</span>
+                              <span style={{ fontWeight: 600 }}>{row.validatorId.name || (row.validatorId as any).userName || 'Assigned'}</span>
                               <button
                                 onClick={() => openAssignValidator(row._id)}
                                 style={{
