@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
     const query: any = {
       status: { $ne: 'Delete' },
-      bookingStatus: { $in: ['Booked', 'Rescheduled', 'InProgress'] },
+      bookingStatus: { $in: ['Booked', 'Assigned', 'Confirmed', 'Rescheduled', 'InProgress'] },
     };
 
     if (role === 'Validator') {

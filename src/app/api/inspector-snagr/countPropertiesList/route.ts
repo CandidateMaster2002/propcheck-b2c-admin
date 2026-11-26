@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       Property.countDocuments({
         [roleField]: inspectorOid,
         status: { $ne: 'Delete' },
-        bookingStatus: { $in: ['Booked', 'Rescheduled', 'InProgress'] },
+        bookingStatus: { $in: ['Booked', 'Assigned', 'Confirmed', 'Rescheduled', 'InProgress'] },
       }),
       Property.countDocuments({
         [roleField]: inspectorOid,
